@@ -9,62 +9,80 @@ import java.util.List;
 import java.util.Random;
 
 
-public class ShipUnloading {
-    private int actualTime = 0;
-    private int fine = 0;
-    public ShipUnloading (Generator gen) {
-        CountShips(gen);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (Ship ship: LooseShips) {
-                    int timeArrival = ship.getRealTimeOfArrival();
-                    if (timeArrival >= actualTime)
-                    {
-                        actualTime = ship.getEndTime();
-                    }
-                    else
-                    {
-                        looseFine += (actualTime - timeArrival) / 60;
-                        actualTime = ship.getUnloadingTime() + ship.getDelayUploadingTime();
-                    }
-                }
-            }
-        }).start();
-        System.out.println(looseFine);
+public class ShipUnloading implements Runnable {
+    private int startTime;
+    private int simulatedTime = 0;
+    private int numOfCranes = 1;
+    private List<Ship> shipQueue = new ArrayList<Ship>();
+    private List<Ship> ships = new ArrayList<Ship>();
+    private int minFine = Integer.MAX_VALUE;
+    private int minNumOfCranes = 0;
+
+    public ShipUnloading(List<Ship> ships, int startTime) {
+        this.ships = ships;
+        this.startTime = startTime;
     }
 
-    public void finePlus(int actualTime) {
-        fine+=actualTime;
-    }
+    @Override
+    public void run() {
+        List<Thread> craneList = new ArrayList<Thread>();
+        int fine;
+        while (isContinue()) {
+            fine = 0;
+            simulatedTime = this.ships.get(0).getRealTimeOfArrival() - startTime;
+            int index = 0;
+            System.out.println("I am here");
 
-    private void CountShips(Generator gen)
-    {
-        Random random = new Random();
-        for (Ship ship:gen.getShips()) {
-            boolean isCorrect= false;
-            while (!isCorrect)
-            {
-                ship.setDelayTime(random.nextInt(20161) - 10080);
-                ship.setDelayUploadingTime(random.nextInt(1441));
+            while (simulatedTime < Generator.MaxTime) {
 
-                if (ship.getEndTime() < 43200 && ship.getRealTimeOfArrival() >= 0)
-                {
-                    isCorrect = true;
+                if (index < ships.size()) {
+                    if (simulatedTime + startTime == this.ships.get(index).getRealTimeOfArrival()) { //добавляем в очередь если его время пришло
+                        shipQueue.add(this.ships.get(index));
+                        index++;
+                    }
                 }
+
+                for (int i = 0; i < numOfCranes && i < shipQueue.size() * 2; i++) { // уменьшаем время разгрузки
+                    craneList.add(new Thread(new Crane(shipQueue.get(i % shipQueue.size()))));
+                }
+
+                for (int i = numOfCranes; i < shipQueue.size(); i++) { // те кто не прошли учеличиваем их время стоянки
+                    shipQueue.get(i).incWaitTime();
+                }
+
+                for (Thread t : craneList) { //запускаем потоки
+                    synchronized (Ship.class) {
+                        t.start();
+                    }
+                }
+                craneList.clear();
+
+                for (int i = 0; i < shipQueue.size() && i < numOfCranes; i++) {//если ктото приехал то выкидываем из очереди
+                    Ship ship = shipQueue.get(i);
+                    if (ship.getUnloadingTime() <= 0) {
+                        fine += (ship.getWaitTime() / 60) * 100;
+                        shipQueue.remove(0);
+                    }
+                }
+                ++simulatedTime;
+
             }
-            switch (ship.getCargo().getType()) {
-                case LOOSE -> LooseShips.add(ship);
-                case LIQUID -> LiquidShips.add(ship);
-                case CONTAINER -> ContainerShips.add(ship);
+            System.out.println("Cranes:  " + numOfCranes + " fine: " + fine);
+            if (fine < minFine) {
+                minFine = fine;
+                minNumOfCranes = numOfCranes;
+            }
+            ++numOfCranes;
+            shipQueue.clear();
+            for (Ship ship :
+                    ships) {
+                ship.setWaitTime(0);
+
             }
         }
-        LooseShips.sort(Comparator.comparing(Ship::getRealTimeOfArrival));
-        LiquidShips.sort(Comparator.comparing(Ship::getRealTimeOfArrival));
-        ContainerShips.sort(Comparator.comparing(Ship::getRealTimeOfArrival));
     }
-    int looseFine = 0;
-    List<Ship> LooseShips = new ArrayList<>();
-    List<Ship> ContainerShips = new ArrayList<>();;
-    List<Ship> LiquidShips = new ArrayList<>();;
+
+    private boolean isContinue() {
+        return minFine > 30000;
+    }
 }

@@ -8,26 +8,60 @@ public class Ship {
     private int unloadingTime;
     private int delayTime = 0;
     private int delayUploadingTime = 0;
+    private int waitTime = 0;
+    public void decUploadingTime()
+    {
+        unloadingTime--;
+    }
+    public int getWeight() {
+        return weight;
+    }
 
-    public String getName() { return name; }
+    public String getName() {
+        return name;
+    }
 
-    public int getDelayTime() { return delayTime; }
+    public void incWaitTime()
+    {
+        waitTime++;
+    }
 
-    public int getDelayUploadingTime() { return delayUploadingTime; }
+    public int getWaitTime() {
+        return waitTime;
+    }
+
+    public int getDelayTime() {
+        return delayTime;
+    }
+
+    public int getDelayUploadingTime() {
+        return delayUploadingTime;
+    }
+
+    public void setUnloadingTime(int time)
+    {
+        this.unloadingTime = time;
+    }
+
+    public void setWaitTime(int waitTime) {
+        this.waitTime = waitTime;
+    }
 
     public void setDelayTime(int delayTime) {
-        this.delayTime = delayTime;
+        this.timeOfArrival += delayTime;
     }
 
     public void setDelayUploadingTime(int delayUploadingTime) {
-        this.delayUploadingTime = delayUploadingTime;
+        this.unloadingTime += delayUploadingTime;
     }
 
     public int getEndTime() {
         return timeOfArrival + delayTime + unloadingTime + delayUploadingTime;
     }
 
-    public int getRealTimeOfArrival() { return timeOfArrival + delayTime; }
+    public int getRealTimeOfArrival() {
+        return timeOfArrival + delayTime;
+    }
 
     public int getTimeOfArrival() {
         return timeOfArrival;

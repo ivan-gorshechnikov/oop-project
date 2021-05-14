@@ -7,7 +7,7 @@ import java.util.Vector;
 import static ServiceOne.Cargo.TypeOfCargo.*;
 
 public class Generator {
-    private final int MaxTime = 43200;
+    public static final int MaxTime = 43200;
     private Vector<Ship> ships;
 
     public Generator(int size) {

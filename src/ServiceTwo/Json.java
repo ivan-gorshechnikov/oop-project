@@ -3,10 +3,10 @@ package ServiceTwo;
 import ServiceOne.Cargo;
 import ServiceOne.Generator;
 import ServiceOne.Ship;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import java.io.FileWriter;
-
-import org.json.*;
 
 import java.util.Comparator;
 import java.util.Scanner;
@@ -38,8 +38,8 @@ public class Json {
         ships.getShips().sort(Comparator.comparing(Ship::getTimeOfArrival));
         System.out.println(ships.getShips());
     }
-    private void addNewShipFromConsole()
-    {
+
+    private void addNewShipFromConsole() {
         Scanner input = new Scanner(System.in);
         System.out.println("Enter date of arrival");
         int day = input.nextInt();
@@ -61,8 +61,7 @@ public class Json {
         System.out.println("Choose type of ship, where 0 - LOOSE, 1 - LIQUID, 2 - CONTAINER");
         int cargo = input.nextInt();
         Cargo type = new Cargo();
-        switch (cargo)
-        {
+        switch (cargo) {
             case 0 -> type.setType(Cargo.TypeOfCargo.LOOSE);
             case 1 -> type.setType(Cargo.TypeOfCargo.LIQUID);
             case 2 -> type.setType(Cargo.TypeOfCargo.CONTAINER);
@@ -82,25 +81,22 @@ public class Json {
         }
         ships.getShips().addElement(new Ship(name, type, (1440 * day + 60 * hours + minutes), unloadingTime, weight));
     }
+
     public void writeToJson() {
         JSONArray shipJSON = new JSONArray();
         for (Ship ship : ships.getShips()) {
             JSONObject jsonObject = new JSONObject();
-            try {
-                jsonObject.put("Name ship", ship.getName());
-                jsonObject.put("Arrival date", ship.getTimeOfArrival());
-                jsonObject.put("Departure date", ship.getEndTime());
-                jsonObject.put("Type of cargo", ship.getCargo().getType().toString());
-                jsonObject.put("Real arrival date", ship.getRealTimeOfArrival());
-                shipJSON.put(jsonObject);
-            } catch (JSONException e) {
-
+            jsonObject.put("Name ship", ship.getName());
+            jsonObject.put("Arrival date", ship.getTimeOfArrival());
+            jsonObject.put("Type of cargo", ship.getCargo().getType().toString());
+            jsonObject.put("Weight is", ship.getWeight());
+            jsonObject.put("Unloading time", ship.getUnloadingTime());
+            shipJSON.add(jsonObject);
+            try (FileWriter file = new FileWriter("src\\ServiceTwo\\report.JSON")) {
+                file.write(shipJSON.toString());
+            } catch (Exception e) {
+                System.out.println(e);
             }
-        }
-        try (FileWriter file = new FileWriter("src\\ServiceTwo\\report.JSON")) {
-            file.write(shipJSON.toString());
-        } catch (Exception e) {
-            System.out.println(e);
         }
     }
 }
