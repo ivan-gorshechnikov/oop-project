@@ -27,11 +27,15 @@ public class Simulator {
             containerMin = ContainerShips.get(0).getRealTimeOfArrival();
         }
         int min = Integer.min(Integer.min(looseMin, liquidMin), containerMin);
-        Thread LooseThread = new Thread(new ShipUnloading(LooseShips, min));
-        Thread LiquidThread = new Thread(new ShipUnloading(LiquidShips, min));
-        Thread ContainerThread = new Thread(new ShipUnloading(ContainerShips, min));
-        LooseThread.start();
-        LiquidThread.start();
-        ContainerThread.start();
+        ShipUnloading LooseThread = new ShipUnloading(LooseShips, min);
+        ShipUnloading LiquidThread = new ShipUnloading(LiquidShips, min);
+        ShipUnloading ContainerThread = new ShipUnloading(ContainerShips, min);
+        try {
+            LooseThread.run();
+            LiquidThread.run();
+            ContainerThread.run();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -6,12 +6,16 @@ public class Ship {
     private Cargo cargo;
     private int weight;
     private int unloadingTime;
-    private int delayTime = 0;
-    private int delayUploadingTime = 0;
+    private int workingUnloadingTime;
     private int waitTime = 0;
-    public void decUploadingTime()
+
+    public void writeWorkingTime()
     {
-        unloadingTime--;
+        workingUnloadingTime = unloadingTime;
+    }
+    synchronized public void decWorkUploadingTime()
+    {
+        workingUnloadingTime--;
     }
     public int getWeight() {
         return weight;
@@ -21,21 +25,13 @@ public class Ship {
         return name;
     }
 
-    public void incWaitTime()
+    synchronized public void incWaitTime()
     {
         waitTime++;
     }
 
     public int getWaitTime() {
         return waitTime;
-    }
-
-    public int getDelayTime() {
-        return delayTime;
-    }
-
-    public int getDelayUploadingTime() {
-        return delayUploadingTime;
     }
 
     public void setUnloadingTime(int time)
@@ -55,12 +51,8 @@ public class Ship {
         this.unloadingTime += delayUploadingTime;
     }
 
-    public int getEndTime() {
-        return timeOfArrival + delayTime + unloadingTime + delayUploadingTime;
-    }
-
     public int getRealTimeOfArrival() {
-        return timeOfArrival + delayTime;
+        return timeOfArrival;
     }
 
     public int getTimeOfArrival() {
@@ -73,6 +65,10 @@ public class Ship {
 
     public int getUnloadingTime() {
         return unloadingTime;
+    }
+
+    public int getWorkingUnloadingTime() {
+        return workingUnloadingTime;
     }
 
     @Override
